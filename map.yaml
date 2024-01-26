@@ -1,0 +1,50 @@
+apiVersion: numaflow.numaproj.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: even-odd
+spec:
+  vertices:
+    - name: in
+      source:
+        generator:
+          # How many messages to generate in the duration.
+          rpu: 1
+          duration: 1s
+          # Optional, size of each generated message, defaults to 10.
+          msgSize: 1024
+    - name: even-or-odd
+      containerTemplate:
+        env:
+          - name: NUMAFLOW_DEBUG
+            value: "true"
+          - name: NUMAFLOW_PPROF
+            value: "true"
+      scale:
+        min: 1
+      udf:
+        container:
+          # Tell the input number is even or odd, see https://github.com/numaproj/numaflow-go/tree/main/pkg/mapper/examples/even_odd
+          image: even-odd:v0.5.0
+
+        
+              
+    - name: number-sink
+      scale:
+        min: 1
+      sink:
+        log: {}
+  edges:
+    - from: in
+      to: even-or-odd
+    
+    - from: even-or-odd
+      to: number-sink
+     
+
+
+
+
+     # Port-forward
+kubectl port-forward even-odd-even-or-odd-0-y2bsu 2469
+
+go tool pprof -http localhost:8081 https+insecure://localhost:2469/debug/pprof/heap

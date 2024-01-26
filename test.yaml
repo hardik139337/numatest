@@ -1,0 +1,56 @@
+apiVersion: numaflow.numaproj.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: test
+spec:
+  vertices:
+    - name: http-in
+      source:
+        http: {}
+    - name: kafka-in
+      source:
+        kafka:
+          brokers:
+            - my-broker1:19700
+            - my-broker2:19700
+          topic: my-topic
+          consumerGroup: my-consumer-group
+
+    - name: cat1
+      udf:
+        builtin:
+          name: cat 
+
+    - name: cat2
+      udf:
+        builtin:
+          name: cat
+
+    - name: cat3
+      udf:
+        builtin:
+          name: cat
+
+    - name: cat4
+      udf:
+        builtin:
+          name: cat
+
+    - name: out
+      sink:
+        log: {}
+  edges:
+    - from: http-in
+      to: cat1
+    - from: http-in
+      to: cat2
+    - from: kafka-in
+      to: cat3
+    - from: cat1
+      to: cat4
+    - from: cat2
+      to: cat4
+    - from: cat3
+      to: cat4
+    - from: cat4
+      to: out
